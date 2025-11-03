@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learning Journey Card</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: only light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 15% 10%, #8d62ff 0%, #5529cb 34%),
+          radial-gradient(circle at 85% 90%, #4820b2 0%, #25127b 55%),
+          #2f1d8a;
+        font-family: "Poppins", sans-serif;
+        color: #ffffff;
+        padding: 32px;
+      }
+
+      .journey-card {
+        position: relative;
+        width: min(1040px, 92vw);
+        aspect-ratio: 2.05 / 1.2;
+        max-height: 640px;
+        background: linear-gradient(160deg, #ffb04b 0%, #ff792d 55%, #ff6d2a 100%);
+        border-radius: 32px 32px 44px 44px;
+        box-shadow: 0 40px 80px rgba(20, 11, 76, 0.55);
+        padding: 96px 72px 88px;
+        overflow: hidden;
+      }
+
+      .journey-card::before,
+      .journey-card::after {
+        content: "";
+        position: absolute;
+        bottom: 34px;
+        left: 40px;
+        height: 4px;
+        width: 340px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, rgba(70, 170, 255, 0.4), rgba(14, 99, 255, 0.6));
+      }
+
+      .journey-card::after {
+        bottom: 22px;
+        left: 54px;
+        width: 360px;
+        filter: blur(0.2px);
+        opacity: 0.8;
+      }
+
+      .journey-card__title {
+        position: absolute;
+        top: 26px;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 320px;
+        text-align: center;
+        background: linear-gradient(180deg, #ff7d65 0%, #ff3f4f 90%);
+        color: #fff;
+        font-weight: 700;
+        font-size: clamp(24px, 2.4vw, 30px);
+        border-radius: 28px 28px 12px 12px;
+        padding: 18px 48px 16px;
+        box-shadow: 0 14px 24px rgba(188, 32, 68, 0.25);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .journey-card__title::after {
+        content: "";
+        position: absolute;
+        inset: -18px 24px auto;
+        height: 32px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
+        border-radius: 12px 12px 0 0;
+        opacity: 0.35;
+      }
+
+      .journey-card__canvas {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      .journey-card__svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .journey-card__path {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .journey-card__path--outer {
+        stroke: rgba(255, 255, 255, 0.55);
+        stroke-width: 10;
+        filter: drop-shadow(0 6px 10px rgba(193, 81, 18, 0.3));
+      }
+
+      .journey-card__path--inner {
+        stroke: rgba(255, 255, 255, 0.45);
+        stroke-width: 9;
+        filter: drop-shadow(0 6px 10px rgba(193, 81, 18, 0.24));
+      }
+
+      .node {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+        color: #fff;
+      }
+
+      .node__badge {
+        --diameter: clamp(68px, 11vw, 78px);
+        width: var(--diameter);
+        height: var(--diameter);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 32% 28%, #7ecbff 0%, #63b4ff 40%, #1f74ff 100%);
+        border: clamp(4px, 0.8vw, 6px) solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 12px 22px rgba(20, 66, 182, 0.3), inset 0 -8px 14px rgba(9, 40, 120, 0.25);
+        position: relative;
+      }
+
+      .node__badge::after {
+        content: "";
+        position: absolute;
+        inset: 6%;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+        opacity: 0.7;
+      }
+
+      .node--locked .node__badge {
+        background: radial-gradient(circle at 30% 25%, #6fa1ff 0%, #3d7bee 50%, #2052c3 100%);
+      }
+
+      .node--certificate .node__badge {
+        border-radius: 22px;
+        width: clamp(170px, 24vw, 220px);
+        height: clamp(62px, 9vw, 76px);
+        background: linear-gradient(135deg, #4c57ff 0%, #0a2bff 100%);
+        border: 5px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 16px 26px rgba(10, 43, 255, 0.32);
+      }
+
+      .node--certificate .node__badge::after {
+        display: none;
+      }
+
+      .node--certificate .node__badge-content {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        font-size: clamp(18px, 1.9vw, 22px);
+        letter-spacing: 0.01em;
+      }
+
+      .certificate-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: clamp(34px, 3.8vw, 42px);
+        aspect-ratio: 1;
+        border-radius: 14px;
+        background: radial-gradient(circle at 30% 30%, #ffde75 0%, #fd9d2f 95%);
+        box-shadow: inset 0 -6px 10px rgba(185, 90, 6, 0.35);
+        position: relative;
+      }
+
+      .certificate-icon::after {
+        content: "";
+        width: 12px;
+        height: 18px;
+        background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23d14600' d='M16.5 2h-9A2.5 2.5 0 0 0 5 4.5v13.63c0 .95 1.15 1.43 1.82.76l2.7-2.7l2.7 2.7c.67.67 1.82.19 1.82-.76V4.5A2.5 2.5 0 0 0 16.5 2Z'/%3E%3Cpath fill='%23fff4d6' d='M15 12H9a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2Zm0-4H9a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2Z'/%3E%3C/svg%3E")
+          center/contain no-repeat;
+      }
+
+      .node__badge-number {
+        position: relative;
+        z-index: 1;
+        font-size: clamp(26px, 4vw, 32px);
+        font-weight: 700;
+        text-shadow: 0 8px 14px rgba(13, 57, 153, 0.5);
+      }
+
+      .node--locked .node__badge-number {
+        display: none;
+      }
+
+      .node__label {
+        font-size: clamp(14px, 1.6vw, 18px);
+        font-weight: 500;
+        color: #fff7f1;
+        text-shadow: 0 2px 6px rgba(125, 49, 0, 0.3);
+      }
+
+      .node__progress {
+        position: relative;
+        width: clamp(140px, 22vw, 180px);
+        height: 20px;
+        margin-top: -4px;
+      }
+
+      .node__progress-bar {
+        position: absolute;
+        top: 8px;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.28);
+        overflow: hidden;
+      }
+
+      .node__progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #635dff 0%, #4bf4ff 100%);
+      }
+
+      .node__progress-text {
+        display: block;
+        font-size: clamp(12px, 1.2vw, 14px);
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        margin-top: 6px;
+        letter-spacing: 0.04em;
+      }
+
+      .node--locked .node__progress,
+      .node--certificate .node__progress {
+        display: none;
+      }
+
+      .node--locked::after {
+        content: "";
+        position: absolute;
+        inset: calc(var(--diameter) / -2.2) auto auto;
+        width: clamp(32px, 4vw, 42px);
+        height: clamp(32px, 4vw, 42px);
+        background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+        filter: blur(18px);
+        opacity: 0.45;
+      }
+
+      .node--locked .node__badge::before {
+        content: "";
+        position: relative;
+        z-index: 1;
+        width: clamp(24px, 3vw, 28px);
+        height: clamp(26px, 3.2vw, 32px);
+        background: url("data:image/svg+xml,%3Csvg width='28' height='32' viewBox='0 0 28 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23ffffff' opacity='0.86' d='M8.5 12V9.5a5.5 5.5 0 1 1 11 0V12h1.5A2 2 0 0 1 23.5 14v12A2 2 0 0 1 21.5 28h-15A2 2 0 0 1 4.5 26V14a2 2 0 0 1 2-2H8.5Zm3-2.5V12h5V9.5a2.5 2.5 0 0 0-5 0Z'/%3E%3C/svg%3E")
+          center/contain no-repeat;
+      }
+
+      .node--certificate .node__label {
+        margin-top: 6px;
+      }
+
+      .node--certificate .node__shadow {
+        position: absolute;
+        inset: auto;
+        bottom: -20px;
+        width: 80%;
+        height: 16px;
+        background: radial-gradient(circle, rgba(17, 48, 138, 0.4), rgba(17, 48, 138, 0));
+      }
+
+      .node[data-x] {
+        left: var(--x);
+        top: var(--y);
+      }
+
+      @media (max-width: 900px) {
+        .journey-card {
+          padding: 108px 48px 94px;
+        }
+
+        .journey-card::before,
+        .journey-card::after {
+          display: none;
+        }
+
+        .node__badge {
+          --diameter: clamp(62px, 18vw, 78px);
+        }
+
+        .node__progress {
+          width: clamp(120px, 28vw, 180px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="journey-card">
+      <div class="journey-card__title">My Learning Journey</div>
+      <div class="journey-card__canvas">
+        <svg
+          class="journey-card__svg"
+          viewBox="0 0 960 600"
+          aria-hidden="true"
+          preserveAspectRatio="none"
+        >
+          <path
+            class="journey-card__path journey-card__path--outer"
+            d="M120 130 H780 C828 130 858 152 858 198 V352 C858 398 828 422 780 422 H272 C226 422 206 442 206 480 V520 C206 548 228 570 258 570 H736"
+          ></path>
+          <path
+            class="journey-card__path journey-card__path--inner"
+            d="M214 250 H762 C804 250 836 274 836 318 V326 C836 370 804 394 762 394 H214 C172 394 142 370 142 326 V318 C142 274 172 250 214 250 Z"
+          ></path>
+        </svg>
+
+        <div
+          class="node node--active"
+          style="--x:14%; --y:24%;"
+          data-x="14%"
+          data-y="24%"
+        >
+          <div class="node__badge">
+            <span class="node__badge-number">1</span>
+          </div>
+          <span class="node__label">Whole number</span>
+          <div class="node__progress">
+            <div class="node__progress-bar">
+              <div class="node__progress-fill" style="width: 8%;"></div>
+            </div>
+            <span class="node__progress-text">1/15</span>
+          </div>
+        </div>
+
+        <div class="node node--locked" style="--x:31%; --y:22%;" data-x="31%">
+          <div class="node__badge"></div>
+          <span class="node__label">Prime numbers</span>
+        </div>
+
+        <div class="node node--locked" style="--x:48.5%; --y:21%;" data-x="48.5%">
+          <div class="node__badge"></div>
+          <span class="node__label">Percentage</span>
+        </div>
+
+        <div class="node node--locked" style="--x:66%; --y:22%;" data-x="66%">
+          <div class="node__badge"></div>
+          <span class="node__label">Speed</span>
+        </div>
+
+        <div class="node node--locked" style="--x:82%; --y:25%;" data-x="82%">
+          <div class="node__badge"></div>
+          <span class="node__label">Volume</span>
+        </div>
+
+        <div class="node node--locked" style="--x:23%; --y:46%;" data-x="23%">
+          <div class="node__badge"></div>
+          <span class="node__label">Pie Charts</span>
+        </div>
+
+        <div class="node node--locked" style="--x:39%; --y:48%;" data-x="39%">
+          <div class="node__badge"></div>
+          <span class="node__label">Fractions</span>
+        </div>
+
+        <div class="node node--locked" style="--x:55.5%; --y:49%;" data-x="55.5%">
+          <div class="node__badge"></div>
+          <span class="node__label">Ratio</span>
+        </div>
+
+        <div class="node node--locked" style="--x:71%; --y:48%;" data-x="71%">
+          <div class="node__badge"></div>
+          <span class="node__label">Geometric Figures</span>
+        </div>
+
+        <div class="node node--locked" style="--x:85%; --y:46%;" data-x="85%">
+          <div class="node__badge"></div>
+          <span class="node__label">Circumference of Circle</span>
+        </div>
+
+        <div class="node node--locked" style="--x:28%; --y:72%;" data-x="28%">
+          <div class="node__badge"></div>
+          <span class="node__label">Algebra</span>
+        </div>
+
+        <div class="node node--locked" style="--x:45%; --y:70%;" data-x="45%">
+          <div class="node__badge"></div>
+          <span class="node__label">Solid Figures</span>
+        </div>
+
+        <div class="node node--locked" style="--x:61%; --y:72%;" data-x="61%">
+          <div class="node__badge"></div>
+          <span class="node__label">Angles</span>
+        </div>
+
+        <div class="node node--locked" style="--x:75%; --y:74%;" data-x="75%">
+          <div class="node__badge"></div>
+          <span class="node__label">Circles</span>
+        </div>
+
+        <div class="node node--certificate" style="--x:86%; --y:86%;" data-x="86%">
+          <div class="node__badge">
+            <div class="node__badge-content">
+              <span class="certificate-icon"></span>
+              <span>Certificate</span>
+            </div>
+          </div>
+          <span class="node__label">Certificate</span>
+          <span class="node__shadow"></span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
